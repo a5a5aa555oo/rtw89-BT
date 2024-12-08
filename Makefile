@@ -3,53 +3,34 @@
 # Makefile for the Linux Bluetooth HCI device drivers.
 #
 
-obj-$(CONFIG_BT_HCIVHCI)	+= hci_vhci.o
-obj-$(CONFIG_BT_HCIUART)	+= hci_uart.o
-obj-$(CONFIG_BT_HCIBCM203X)	+= bcm203x.o
-obj-$(CONFIG_BT_HCIBCM4377)	+= hci_bcm4377.o
-obj-$(CONFIG_BT_HCIBPA10X)	+= bpa10x.o
-obj-$(CONFIG_BT_HCIBFUSB)	+= bfusb.o
-obj-$(CONFIG_BT_HCIDTL1)	+= dtl1_cs.o
-obj-$(CONFIG_BT_HCIBT3C)	+= bt3c_cs.o
-obj-$(CONFIG_BT_HCIBLUECARD)	+= bluecard_cs.o
+ifneq ($(KERNELRELEASE),)
 
-obj-$(CONFIG_BT_HCIBTUSB)	+= btusb.o
-obj-$(CONFIG_BT_HCIBTSDIO)	+= btsdio.o
+obj-m	+= btusb_git.o
+obj-m	+= btintel_git.o
+obj-m	+= btbcm_git.o
+obj-m	+= btrtl_git.o
+obj-m	+= btmtk_git.o
 
-obj-$(CONFIG_BT_INTEL)		+= btintel.o
-obj-$(CONFIG_BT_INTEL_PCIE)	+= btintel_pcie.o btintel.o
-obj-$(CONFIG_BT_ATH3K)		+= ath3k.o
-obj-$(CONFIG_BT_MRVL)		+= btmrvl.o
-obj-$(CONFIG_BT_MRVL_SDIO)	+= btmrvl_sdio.o
-obj-$(CONFIG_BT_MTKSDIO)	+= btmtksdio.o
-obj-$(CONFIG_BT_MTKUART)	+= btmtkuart.o
-obj-$(CONFIG_BT_QCOMSMD)	+= btqcomsmd.o
-obj-$(CONFIG_BT_BCM)		+= btbcm.o
-obj-$(CONFIG_BT_RTL)		+= btrtl.o
-obj-$(CONFIG_BT_QCA)		+= btqca.o
-obj-$(CONFIG_BT_MTK)		+= btmtk.o
+else
 
-obj-$(CONFIG_BT_VIRTIO)		+= virtio_bt.o
-obj-$(CONFIG_BT_NXPUART)	+= btnxpuart.o
+KVER ?= `uname -r`
+KDIR ?= /lib/modules/$(KVER)/build
+MODDIR ?= /lib/modules/$(KVER)/extra/bluetooth
 
-obj-$(CONFIG_BT_HCIUART_NOKIA)	+= hci_nokia.o
+modules:
+	$(MAKE) -j`nproc` -C $(KDIR) M=$$PWD modules
 
-obj-$(CONFIG_BT_HCIRSI)		+= btrsi.o
+clean:
+	$(MAKE) -C $(KDIR) M=$$PWD clean
 
-btmrvl-y			:= btmrvl_main.o
-btmrvl-$(CONFIG_DEBUG_FS)	+= btmrvl_debugfs.o
+install:
+	strip -g *.ko
+	@install -Dvm 644 -t $(MODDIR) *.ko
+	depmod -a $(KVER)
+	
+uninstall:
+	@rm -rvf $(MODDIR)
+	@rmdir --ignore-fail-on-non-empty /lib/modules/$(KVER)/extra || true
+	depmod -a $(KVER)
 
-hci_uart-y				:= hci_ldisc.o
-hci_uart-$(CONFIG_BT_HCIUART_SERDEV)	+= hci_serdev.o
-hci_uart-$(CONFIG_BT_HCIUART_H4)	+= hci_h4.o
-hci_uart-$(CONFIG_BT_HCIUART_BCSP)	+= hci_bcsp.o
-hci_uart-$(CONFIG_BT_HCIUART_LL)	+= hci_ll.o
-hci_uart-$(CONFIG_BT_HCIUART_ATH3K)	+= hci_ath.o
-hci_uart-$(CONFIG_BT_HCIUART_3WIRE)	+= hci_h5.o
-hci_uart-$(CONFIG_BT_HCIUART_INTEL)	+= hci_intel.o
-hci_uart-$(CONFIG_BT_HCIUART_BCM)	+= hci_bcm.o
-hci_uart-$(CONFIG_BT_HCIUART_QCA)	+= hci_qca.o
-hci_uart-$(CONFIG_BT_HCIUART_AG6XX)	+= hci_ag6xx.o
-hci_uart-$(CONFIG_BT_HCIUART_MRVL)	+= hci_mrvl.o
-hci_uart-$(CONFIG_BT_HCIUART_AML)	+= hci_aml.o
-hci_uart-objs				:= $(hci_uart-y)
+endif
