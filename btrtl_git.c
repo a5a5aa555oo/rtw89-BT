@@ -5,9 +5,14 @@
  *  Copyright (C) 2015 Endless Mobile, Inc.
  */
 
+#include <linux/version.h>
 #include <linux/module.h>
 #include <linux/firmware.h>
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 12, 0)
 #include <linux/unaligned.h>
+#else
+#include <asm/unaligned.h>
+#endif
 #include <linux/usb.h>
 
 #include <net/bluetooth/bluetooth.h>
