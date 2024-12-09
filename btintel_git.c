@@ -2660,6 +2660,7 @@ static void btintel_set_dsm_reset_method(struct hci_dev *hdev,
 	data->acpi_reset_method = btintel_acpi_reset_method;
 }
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 11, 0)
 #define BTINTEL_ISODATA_HANDLE_BASE 0x900
 
 static u8 btintel_classify_pkt_type(struct hci_dev *hdev, struct sk_buff *skb)
@@ -2677,6 +2678,7 @@ static u8 btintel_classify_pkt_type(struct hci_dev *hdev, struct sk_buff *skb)
 
 	return hci_skb_pkt_type(skb);
 }
+#endif
 
 /*
  * UefiCnvCommonDSBR UEFI variable provides information from the OEM platforms
@@ -3252,11 +3254,13 @@ static int btintel_setup_combined(struct hci_dev *hdev)
 		err = btintel_bootloader_setup(hdev, &ver);
 		btintel_register_devcoredump_support(hdev);
 		break;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 11, 0)
 	case 0x18: /* GfP2 */
 	case 0x1c: /* GaP */
 		/* Re-classify packet type for controllers with LE audio */
 		hdev->classify_pkt_type = btintel_classify_pkt_type;
 		fallthrough;
+#endif
 	case 0x17:
 	case 0x19:
 	case 0x1b:
